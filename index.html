@@ -95,8 +95,8 @@
 
           $('#map_canvas').css('height', (h - offsetTop));
         }).resize();
-
-        $(function() {
+        function initMap() {
+        //$(function() {
           var myMap = new MapsLib({
             googleApiKey:       "AIzaSyBeWfbykfAeNK7TLYk8HKxGe4LJXncZtdA",
             locationColumn:     "geometry",
@@ -142,8 +142,9 @@
                   return false;
               }
           });
-        });
+        };//);
       //]]>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeWfbykfAeNK7TLYk8HKxGe4LJXncZtdA&callback=initMap" async defer></script>
     </script>
   </body>
 </html>
