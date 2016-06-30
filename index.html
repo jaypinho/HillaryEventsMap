@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang='en'>
   <head>
-    <title>Searchable Map Template Demo</title>
+    <title>Hillary Events Map</title>
     <meta charset='utf-8' />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta content='' name='description' />
@@ -23,7 +23,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class='navbar-brand' href='index.html'>Searchable Map Template</a>
+          <a class='navbar-brand' href='index.html'>Hillary events map</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
@@ -85,7 +85,6 @@
     <script type="text/javascript" src="js/jquery-1.10.2.min.js"></script>
     <script type="text/javascript" src="js/jquery.address.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false&libraries=places"></script>
     <script type="text/javascript" src="js/maps_lib.js"></script>
     <script type='text/javascript'>
       //<![CDATA[
@@ -95,10 +94,10 @@
 
           $('#map_canvas').css('height', (h - offsetTop));
         }).resize();
-
-        $(function() {
+        function initMap() {
+        //$(function() {
           var myMap = new MapsLib({
-            googleApiKey:       "AIzaSyA3FQFrNr5W2OEVmuENqhb2MBB2JabdaOY",
+            googleApiKey:       "AIzaSyBeWfbykfAeNK7TLYk8HKxGe4LJXncZtdA",
             locationColumn:     "geometry",
             map_center:         [37.734646, -122.463708],
             locationScope:      "San Francisco"
@@ -142,8 +141,10 @@
                   return false;
               }
           });
-        });
+        };//);
       //]]>
+      
     </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeWfbykfAeNK7TLYk8HKxGe4LJXncZtdA&sensor=false&libraries=places&callback=initMap" async defer></script>
   </body>
 </html>
