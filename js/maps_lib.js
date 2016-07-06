@@ -112,10 +112,12 @@
           .done(function(data) {
             //console.log("result" + JSON.stringify(data));
             $("#results_detail").empty();
-            for (var i = 0; i < data.events.length; i++) {
+            var all_events = data.events.sort(function(a, b) {return new Date (a.startDate) - new Date(b.startDate);});
+            console.log(all_events);
+            for (var i = 0; i < all_events.length; i++) {
               var markerToAdd = {};
               //markerToAdd.position = {lat: 37.734646, lng:-122.463708 };
-              var event = data.events[i];
+              var event = all_events[i];
               var locations = event.locations;
               console.log("Event Name:" + i +" " + event.name);
               for (var j=0; j < locations.length; j++) {
