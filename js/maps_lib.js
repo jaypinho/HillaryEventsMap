@@ -128,7 +128,15 @@
                 markerToAdd.title = event.name;
                 self.addmarker(markerToAdd, {id:event.id, details:event.description, lookupId:event.lookupId});
               }
-              $("#results_detail").append('<div class="panel panel-default"><div class="panel-heading">'+event.name+'</div><div class="panel-body">'+event.description+'</div></div>');
+              var formattedDate = '';
+              if(new Date(event.startDate).toLocaleDateString() == new Date(event.endDate).toLocaleDateString())
+                {formattedDate = new Date(event.endDate).toLocaleTimeString()}
+              else
+                {formattedDate = new Date(event.endDate).toLocaleString()}
+              $("#results_detail").append('<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title"><i class="glyphicon glyphicon-pushpin"></i> '
+              +event.name+'</h3></div><div class="panel-body"><i class="glyphicon glyphicon-time"></i> '
+              +new Date(event.startDate).toLocaleString()+'-'+formattedDate
+              +'<br><i class="glyphicon glyphicon-link"></i> '+event.description+'</div></div>');
             }
             self.displaySearchCount(data.events.length);
           })
