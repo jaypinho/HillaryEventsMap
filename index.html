@@ -23,7 +23,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class='navbar-brand' href='index.html'>Hillary events map</a>
+          <a class='navbar-brand' href='index.html'>Hillary Events Map</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
@@ -66,6 +66,7 @@
             </a>
           </div>
           <div class='alert alert-info' id='result_box' ><strong id='result_count'></strong></div>
+          <div id="results_detail"></div>
         </div>
         <div class='col-md-8'>
           <noscript>
@@ -88,6 +89,9 @@
     <script type="text/javascript" src="js/maps_lib.js"></script>
     <script type='text/javascript'>
       //<![CDATA[
+
+        var apiKey = "AIzaSyA_ucn1QvkSB-fk9DTLzfdZWcwBThsG0-8";
+
         $(window).resize(function () {
           var h = $(window).height(),
             offsetTop = 105; // Calculate the top offset
@@ -97,7 +101,7 @@
         function initMap() {
         //$(function() {
           var myMap = new MapsLib({
-            googleApiKey:       "AIzaSyBeWfbykfAeNK7TLYk8HKxGe4LJXncZtdA",
+            googleApiKey:       apiKey,
             locationColumn:     "geometry",
             map_center:         [37.734646, -122.463708],
             locationScope:      "San Francisco"
@@ -143,8 +147,9 @@
           });
         };//);
       //]]>
-      
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBeWfbykfAeNK7TLYk8HKxGe4LJXncZtdA&sensor=false&libraries=places&callback=initMap" async defer></script>
+    <script>
+      document.write("<script src='https://maps.googleapis.com/maps/api/js?key="+ apiKey + "&sensor=false&libraries=places&callback=initMap' async defer><\/scr" + "ipt>");
+    </script>
   </body>
 </html>
