@@ -55,6 +55,9 @@
                 </select>
               </label>
             </p>
+            <p>
+              <input type="checkbox" name="autorefresh" id="autorefresh" value="true"> Refresh events as I move the map
+            </p>
             <br />
             <a class='btn btn-primary' id='search' href='#'>
               <i class='glyphicon glyphicon-search'></i>
@@ -112,9 +115,9 @@
             myMap.doSearch();
           });
 
-          $(':checkbox').click(function(){
-            myMap.doSearch();
-          });
+          // $(':checkbox').click(function(){
+          //   myMap.doSearch();
+          // });
 
           $(':radio').click(function(){
             myMap.doSearch();
@@ -144,6 +147,18 @@
                   $('#search').click();
                   return false;
               }
+          });
+
+          var rn = new Date().getTime();
+          google.maps.event.addListener(myMap.map, 'bounds_changed', function(event) {
+            if ($('#autorefresh')[0].checked) {
+              var rn2 = new Date().getTime();
+              if(rn2 - rn > 600) {
+                rn = rn2;
+                // myMap.addrFromLatLng(new google.maps.LatLng(myMap.map.getCenter().lat(), myMap.map.getCenter().lng()));
+                console.log(myMap.map.getCenter().lat());
+              }
+            }
           });
         };//);
       //]]>

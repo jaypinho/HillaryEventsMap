@@ -63,7 +63,7 @@
         else
             $("#search_radius").val(self.searchRadius);
 
-        $(":checkbox").prop("checked", "checked");
+        // $(":checkbox").prop("checked", "checked");
         $("#result_box").hide();
 
         //-----custom initializers-----
