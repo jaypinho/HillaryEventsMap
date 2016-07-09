@@ -151,14 +151,10 @@
 
           var rn = new Date().getTime();
           var last_spot = myMap.map.getCenter();
-          google.maps.event.addListener(myMap.map, 'bounds_changed', function(event) {
+          google.maps.event.addListener(myMap.map, 'idle', function(event) {
             if ($('#autorefresh')[0].checked && myMap.map.getCenter() != last_spot) {
               last_spot = myMap.map.getCenter();
-              var rn2 = new Date().getTime();
-              if(rn2 - rn > 1500) {
-                rn = rn2;
-                myMap.doSearch();
-              }
+              myMap.doSearch();
             }
           });
         };//);
