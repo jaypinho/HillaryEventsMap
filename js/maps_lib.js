@@ -45,13 +45,16 @@
         };
         this.geocoder = new google.maps.Geocoder();
         this.map = new google.maps.Map($("#map_canvas")[0], this.myOptions);
+        console.log("doing again");
 
         // maintains map centerpoint for responsive design
         google.maps.event.addDomListener(self.map, 'idle', function () {
             self.calculateCenter();
         });
+
         google.maps.event.addDomListener(window, 'resize', function () {
             self.map.setCenter(self.map_centroid);
+            console.log(self.map.getCenter().lat());
         });
         self.searchrecords = null;
 
@@ -63,7 +66,7 @@
         else
             $("#search_radius").val(self.searchRadius);
 
-        $(":checkbox").prop("checked", "checked");
+        // $(":checkbox").prop("checked", "checked");
         $("#result_box").hide();
 
         //-----custom initializers-----
@@ -112,12 +115,12 @@
           .done(function(data) {
             //console.log("result" + JSON.stringify(data));
             $("#results_detail").empty();
-            for (var i = 0; i < data.events.length; i++) {
+            var all_events = data.events.sort(function(a, b) {return new Date (a.startDate) - new Date(b.startDate);});
+            for (var i = 0; i < all_events.length; i++) {
               var markerToAdd = {};
               //markerToAdd.position = {lat: 37.734646, lng:-122.463708 };
-              var event = data.events[i];
+              var event = all_events[i];
               var locations = event.locations;
-              console.log("Event Name:" + i +" " + event.name);
               for (var j=0; j < locations.length; j++) {
                 var current_location = locations[j];
                 var latitude = parseFloat(current_location.latitude);
@@ -148,7 +151,9 @@
           });
 
           // Perform other work here ...
-          self.setZoom();
+          if ($('#autorefresh')[0].checked == false) {
+            self.setZoom();
+          }
 
           // Set another completion function for the request above
           jqxhr.complete(function() {
@@ -209,12 +214,14 @@
 
                     $.address.parameter('address', encodeURIComponent(address));
                     $.address.parameter('radius', encodeURIComponent(self.searchRadius));
-                    map.setCenter(self.currentPinpoint);
-                    map.setZoom();
+                    if ($('#autorefresh')[0].checked == false) {
+                      map.setCenter(self.currentPinpoint);
+                      map.setZoom();
+                    }
 
                     if (self.addrMarkerImage != '') {
                         self.addrMarker = new google.maps.Marker({
-                            position: self.currentPinpoint,
+                            position: ($('#autorefresh')[0].checked ? self.map.getCenter() : self.currentPinpoint),
                             map: self.map,
                             icon: self.addrMarkerImage,
                             animation: google.maps.Animation.DROP,
@@ -223,7 +230,7 @@
                     }
                     var geoCondition = " AND ST_INTERSECTS(" + self.locationColumn + ", CIRCLE(LATLNG" + self.currentPinpoint.toString() + "," + self.searchRadius + "))";
                     callback(geoCondition);
-                    self.drawSearchRadiusCircle(self.currentPinpoint);
+                    self.drawSearchRadiusCircle(($('#autorefresh')[0].checked ? self.map.getCenter() : self.currentPinpoint));
                 } else {
                     alert("We could not find your address: " + status);
                     callback('');
@@ -237,15 +244,18 @@
     MapsLib.prototype.doSearch = function () {
         var self = this;
         self.clearSearch();
-        var address = $("#search_address").val();
         self.searchRadius = $("#search_radius").val();
-        //-----custom filters-----
-        //-----end of custom filters-----
-
-        self.getgeoCondition(address, function (geoCondition) {
-            self.submitSearch(self.map, geoCondition);
-        });
-
+        if ($('#autorefresh')[0].checked) {
+          self.addrFromLatLng(self.map.getCenter(), function(results) {
+            self.getgeoCondition(results, function (geoCondition) {
+                self.submitSearch(self.map, geoCondition);
+            });
+          });
+        } else {
+          self.getgeoCondition($("#search_address").val(), function (geoCondition) {
+              self.submitSearch(self.map, geoCondition);
+          });
+        }
     };
 
     MapsLib.prototype.reset = function () {
@@ -254,16 +264,18 @@
         window.location.reload();
     };
 
-    MapsLib.prototype.addrFromLatLng = function (latLngPoint) {
+    MapsLib.prototype.addrFromLatLng = function (latLngPoint, callback) {
         var self = this;
         self.geocoder.geocode({
             'latLng': latLngPoint
         }, function (results, status) {
             if (status === google.maps.GeocoderStatus.OK) {
                 if (results[1]) {
-                    $('#search_address').val(results[1].formatted_address);
-                    $('.hint').focus();
-                    self.doSearch();
+                    if (callback) {
+                      callback(results[1].formatted_address);
+                    }
+                    // $('.hint').focus();
+                    // self.doSearch();
                 }
             } else {
                 alert("Geocoder failed due to: " + status);
@@ -409,7 +421,8 @@
                 var accuracy = position.coords.accuracy;
                 var coords = new google.maps.LatLng(latitude, longitude);
                 self.map.panTo(coords);
-                self.addrFromLatLng(coords);
+                self.addrFromLatLng(coords, function(results) {$('#search_address').val(results);});
+                self.doSearch();
                 self.map.setZoom(14);
                 jQuery('#map_canvas').append('<div id="myposition"><i class="fontello-target"></i></div>');
                 setTimeout(function () {
