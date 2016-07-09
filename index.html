@@ -150,14 +150,13 @@
           });
 
           var rn = new Date().getTime();
+          var last_spot = myMap.map.getCenter();
           google.maps.event.addListener(myMap.map, 'bounds_changed', function(event) {
-            if ($('#autorefresh')[0].checked) {
+            if ($('#autorefresh')[0].checked && myMap.map.getCenter() != last_spot) {
+              last_spot = myMap.map.getCenter();
               var rn2 = new Date().getTime();
               if(rn2 - rn > 1500) {
                 rn = rn2;
-                // myMap.addrFromLatLng(new google.maps.LatLng(myMap.map.getCenter().lat(), myMap.map.getCenter().lng()));
-                console.log('step1: ' + typeof myMap.map.getCenter());
-                console.log('step1: ' + myMap.map.getCenter().lat() + ', ' + myMap.map.getCenter().lng());
                 myMap.doSearch();
               }
             }
