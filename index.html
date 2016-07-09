@@ -153,10 +153,12 @@
           google.maps.event.addListener(myMap.map, 'bounds_changed', function(event) {
             if ($('#autorefresh')[0].checked) {
               var rn2 = new Date().getTime();
-              if(rn2 - rn > 600) {
+              if(rn2 - rn > 1500) {
                 rn = rn2;
                 // myMap.addrFromLatLng(new google.maps.LatLng(myMap.map.getCenter().lat(), myMap.map.getCenter().lng()));
-                console.log(myMap.map.getCenter().lat());
+                console.log('step1: ' + typeof myMap.map.getCenter());
+                console.log('step1: ' + myMap.map.getCenter().lat() + ', ' + myMap.map.getCenter().lng());
+                myMap.doSearch();
               }
             }
           });
