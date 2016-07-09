@@ -149,7 +149,6 @@
               }
           });
 
-          var rn = new Date().getTime();
           var last_spot = myMap.map.getCenter();
           google.maps.event.addListener(myMap.map, 'idle', function(event) {
             if ($('#autorefresh')[0].checked && myMap.map.getCenter() != last_spot) {
