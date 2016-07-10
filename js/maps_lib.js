@@ -205,17 +205,17 @@
             }
             //alert("Address to get geocode for " + address);
             if (typeof address == 'string') {
-              self.geocoder.geocode({'address': address}, function (results, status) {self.generateCenterMarker(results, status, callback)});
+              self.geocoder.geocode({'address': address}, function (results, status) {self.generateCenterMarker(results, status, address, callback)});
             }
             else {
-              self.generateCenterMarker([{geometry: {location: {lat: function () {return 40.6676035;}, lng: function () {return -73.9878978;}}}}], 'no_geocode', callback);
+              self.generateCenterMarker([{geometry: {location: {lat: function () {return 40.6676035;}, lng: function () {return -73.9878978;}}}}], 'no_geocode', '', callback);
             }
         } else {
             callback('');
         }
     };
 
-    MapsLib.prototype.generateCenterMarker = function (results, status, callback) {
+    MapsLib.prototype.generateCenterMarker = function (results, status, address, callback) {
       var self = this;
       if (status === google.maps.GeocoderStatus.OK || status === 'no_geocode') {
         console.log(results);
@@ -223,7 +223,7 @@
         console.log("Geocode is back:" + self.currentPinpoint);
         var map = this.map;
 
-        if (typeof address == 'string') {
+        if (address != '') {
           $.address.parameter('address', encodeURIComponent(address));
           $.address.parameter('radius', encodeURIComponent(self.searchRadius));
         }
