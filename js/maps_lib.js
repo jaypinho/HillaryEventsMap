@@ -200,45 +200,54 @@
     MapsLib.prototype.getgeoCondition = function (address, callback) {
         var self = this;
         if (address !== "") {
-            if (address.toLowerCase().indexOf(self.locationScope) === -1) {
+            if (typeof address == 'string' && address.toLowerCase().indexOf(self.locationScope) === -1) {
                 address = address; // + " " + self.locationScope; //SMO why self location scope? Removing it for now
             }
             //alert("Address to get geocode for " + address);
-            self.geocoder.geocode({
-                'address': address
-            }, function (results, status) {
-                if (status === google.maps.GeocoderStatus.OK) {
-                    self.currentPinpoint = results[0].geometry.location;
-                    console.log("Geocode is back:" + self.currentPinpoint);
-                    var map = self.map;
-
-                    $.address.parameter('address', encodeURIComponent(address));
-                    $.address.parameter('radius', encodeURIComponent(self.searchRadius));
-                    if ($('#autorefresh')[0].checked == false) {
-                      map.setCenter(self.currentPinpoint);
-                      map.setZoom();
-                    }
-
-                    if (self.addrMarkerImage != '') {
-                        self.addrMarker = new google.maps.Marker({
-                            position: ($('#autorefresh')[0].checked ? self.map.getCenter() : self.currentPinpoint),
-                            map: self.map,
-                            icon: self.addrMarkerImage,
-                            animation: google.maps.Animation.DROP,
-                            title: address
-                        });
-                    }
-                    var geoCondition = " AND ST_INTERSECTS(" + self.locationColumn + ", CIRCLE(LATLNG" + self.currentPinpoint.toString() + "," + self.searchRadius + "))";
-                    callback(geoCondition);
-                    self.drawSearchRadiusCircle(($('#autorefresh')[0].checked ? self.map.getCenter() : self.currentPinpoint));
-                } else {
-                    alert("We could not find your address: " + status);
-                    callback('');
-                }
-            });
+            if (typeof address == 'string') {
+              self.geocoder.geocode({'address': address}, function (results, status) {self.generateCenterMarker(results, status, address, callback)});
+            }
+            else {
+              self.generateCenterMarker([{geometry: {location: {lat: function () {return 40.6676035;}, lng: function () {return -73.9878978;}}}}], 'no_geocode', '', callback);
+            }
         } else {
             callback('');
         }
+    };
+
+    MapsLib.prototype.generateCenterMarker = function (results, status, address, callback) {
+      var self = this;
+      if (status === google.maps.GeocoderStatus.OK || status === 'no_geocode') {
+        console.log(results);
+        self.currentPinpoint = results[0].geometry.location;
+        console.log("Geocode is back:" + self.currentPinpoint);
+        var map = this.map;
+
+        if (address != '') {
+          $.address.parameter('address', encodeURIComponent(address));
+          $.address.parameter('radius', encodeURIComponent(self.searchRadius));
+        }
+        if ($('#autorefresh')[0].checked == false) {
+          map.setCenter(self.currentPinpoint);
+          map.setZoom();
+        }
+
+        if (self.addrMarkerImage != '') {
+            self.addrMarker = new google.maps.Marker({
+                position: ($('#autorefresh')[0].checked ? self.map.getCenter() : self.currentPinpoint),
+                map: self.map,
+                icon: self.addrMarkerImage,
+                animation: google.maps.Animation.DROP,
+                title: (typeof address == 'string' ? address : '')
+            });
+        }
+        var geoCondition = " AND ST_INTERSECTS(" + self.locationColumn + ", CIRCLE(LATLNG" + self.currentPinpoint.toString() + "," + self.searchRadius + "))";
+        callback(geoCondition);
+        self.drawSearchRadiusCircle(($('#autorefresh')[0].checked ? self.map.getCenter() : self.currentPinpoint));
+      } else {
+        alert("We could not find your address: " + status);
+        callback('');
+      }
     };
 
     MapsLib.prototype.doSearch = function () {
@@ -246,10 +255,8 @@
         self.clearSearch();
         self.searchRadius = $("#search_radius").val();
         if ($('#autorefresh')[0].checked) {
-          self.addrFromLatLng(self.map.getCenter(), function(results) {
-            self.getgeoCondition(results, function (geoCondition) {
-                self.submitSearch(self.map, geoCondition);
-            });
+          self.getgeoCondition(self.map.getCenter(), function (geoCondition) {
+              self.submitSearch(self.map, geoCondition);
           });
         } else {
           self.getgeoCondition($("#search_address").val(), function (geoCondition) {
@@ -300,66 +307,6 @@
         self.searchRadiusCircle = new google.maps.Circle(circleOptions);
     };
 
-    MapsLib.prototype.query = function (query_opts, callback) {
-        var queryStr = [],
-            self = this;
-        queryStr.push("SELECT " + query_opts.select);
-        queryStr.push(" FROM " + self.fusionTableId);
-        // where, group and order clauses are optional
-        if (query_opts.where && query_opts.where != "") {
-            queryStr.push(" WHERE " + query_opts.where);
-        }
-        if (query_opts.groupBy && query_opts.groupBy != "") {
-            queryStr.push(" GROUP BY " + query_opts.groupBy);
-        }
-        if (query_opts.orderBy && query_opts.orderBy != "") {
-            queryStr.push(" ORDER BY " + query_opts.orderBy);
-        }
-        if (query_opts.offset && query_opts.offset !== "") {
-            queryStr.push(" OFFSET " + query_opts.offset);
-        }
-        if (query_opts.limit && query_opts.limit !== "") {
-            queryStr.push(" LIMIT " + query_opts.limit);
-        }
-        var theurl = {
-            base: "https://www.googleapis.com/fusiontables/v1/query?sql=",
-            queryStr: queryStr,
-            key: self.googleApiKey
-        };
-        $.ajax({
-            url: [theurl.base, encodeURIComponent(theurl.queryStr.join(" ")), "&key=", theurl.key].join(''),
-            dataType: "json"
-        }).done(function (response) {
-            //console.log(response);
-            if (callback) callback(response);
-        }).fail(function(response) {
-            self.handleError(response);
-        });
-    };
-
-    MapsLib.prototype.handleError = function (json) {
-        if (json.error !== undefined) {
-            var error = json.responseJSON.error.errors;
-            console.log("Error in Fusion Table call!");
-            for (var row in error) {
-                console.log(" Domain: " + error[row].domain);
-                console.log(" Reason: " + error[row].reason);
-                console.log(" Message: " + error[row].message);
-            }
-        }
-    };
-    /*
-    MapsLib.prototype.getCount = function (whereClause) {
-        var self = this;
-        var selectColumns = "Count()";
-        self.query({
-            select: selectColumns,
-            where: whereClause
-        }, function (json) {
-            self.displaySearchCount(json);
-        });
-    };*/
-
     MapsLib.prototype.displaySearchCount = function (count) {
         var self = this;
 
@@ -375,18 +322,6 @@
             $("#result_count").html(count +" " + name + " found");
         });
         $("#result_box").fadeIn();
-    };
-
-    MapsLib.prototype.addCommas = function (nStr) {
-        nStr += '';
-        x = nStr.split('.');
-        x1 = x[0];
-        x2 = x.length > 1 ? '.' + x[1] : '';
-        var rgx = /(\d+)(\d{3})/;
-        while (rgx.test(x1)) {
-            x1 = x1.replace(rgx, '$1' + ',' + '$2');
-        }
-        return x1 + x2;
     };
 
     // maintains map centerpoint for responsive design
